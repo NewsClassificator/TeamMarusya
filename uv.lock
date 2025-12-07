@@ -346,6 +346,7 @@ dependencies = [
     { name = "torch" },
     { name = "torchaudio" },
     { name = "torchvision" },
+    { name = "tqdm" },
     { name = "transformers", extra = ["torch"] },
 ]
 
@@ -366,6 +367,7 @@ requires-dist = [
     { name = "torch", specifier = "==2.4.0+cpu", index = "https://download.pytorch.org/whl/cpu" },
     { name = "torchaudio", specifier = "==2.4.0+cpu", index = "https://download.pytorch.org/whl/cpu" },
     { name = "torchvision", specifier = "==0.19.0+cpu", index = "https://download.pytorch.org/whl/cpu" },
+    { name = "tqdm", specifier = ">=4.66.5" },
     { name = "transformers", extras = ["torch"], specifier = ">=4.30.0" },
 ]
 

@@ -21,6 +21,7 @@ dependencies = [
     "huggingface-hub>=0.16.0",
     "accelerate>=1.11.0",
     "sentencepiece>=0.2.1",
+    "tqdm>=4.66.5",
 ]
 
 [tool.uv.sources]

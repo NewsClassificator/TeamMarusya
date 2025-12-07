@@ -41,3 +41,14 @@ Thumbs.db
 *.csv
 !test_simple.csv
 *.log
+*.json.bak
+negative_news.json
+
+# Training checkpoints
+rubert_finetuned/checkpoint-*/
+checkpoint-*/
+rubert_finetuned/logs/
+
+# LibreOffice lock files
+.~lock.*
+train.json

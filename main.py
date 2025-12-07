@@ -574,18 +574,40 @@ def main():
     print("🚀 Анализатор эмоционального окраса новостей")
     print("=" * 50)
     
-    # Создаем анализатор
+    # Выбор модели
+    print("\n🤖 Выберите модель для использования:")
+    print("  1. Базовая модель (cointegrated/rubert-tiny-sentiment-balanced)")
+    print("  2. Дообученная модель (./rubert_finetuned)")
+    
+    model_choice = input("\nВведите номер модели (1/2) [по умолчанию 1]: ").strip()
+    
+    if model_choice == '2':
+        if os.path.exists('./rubert_finetuned'):
+            model_name = './rubert_finetuned'
+            print("✅ Используется дообученная модель")
+        else:
+            print("⚠️  Дообученная модель не найдена, используется базовая")
+            model_name = 'cointegrated/rubert-tiny-sentiment-balanced'
+    else:
+        model_name = 'cointegrated/rubert-tiny-sentiment-balanced'
+        print("✅ Используется базовая модель")
+    
+    # Создаем анализатор с выбранной моделью
+    print(f"\n⏳ Загрузка модели...")
     analyzer = RuBERTSentimentAnalyzer(
+        model_name=model_name,
         temperature=1.0,
         confidence_threshold=0.5,
         max_length=512
     )
+    print(f"✅ Модель загружена: {model_name}")
     
     # Интерактивный режим
     print(f"\n💬 Интерактивный режим:")
     print("Доступные команды:")
     print("  - Введите текст для анализа")
     print("  - 'params' - показать текущие параметры")
+    print("  - 'model' - переключить модель")
     print("  - 'set <параметр> <значение>' - изменить параметр")
     print("  - 'validate' - запустить валидацию на test_simple.csv")
     print("  - 'exit' - выход")
@@ -604,6 +626,38 @@ def main():
             print("Текущие параметры:")
             for key, value in params.items():
                 print(f"  {key}: {value}")
+            print(f"  model: {analyzer.model_name}")
+        elif user_input.lower() == 'model':
+            print("\n🤖 Переключение модели:")
+            print("  1. Базовая модель (cointegrated/rubert-tiny-sentiment-balanced)")
+            print("  2. Дообученная модель (./rubert_finetuned)")
+            
+            new_model_choice = input("\nВведите номер модели (1/2): ").strip()
+            
+            if new_model_choice == '2':
+                if os.path.exists('./rubert_finetuned'):
+                    new_model_name = './rubert_finetuned'
+                    print("✅ Переключение на дообученную модель...")
+                else:
+                    print("❌ Дообученная модель не найдена!")
+                    continue
+            elif new_model_choice == '1':
+                new_model_name = 'cointegrated/rubert-tiny-sentiment-balanced'
+                print("✅ Переключение на базовую модель...")
+            else:
+                print("❌ Неверный выбор")
+                continue
+            
+            # Пересоздаем анализатор с новой моделью
+            print("⏳ Загрузка модели...")
+            old_params = analyzer.get_parameters()
+            analyzer = RuBERTSentimentAnalyzer(
+                model_name=new_model_name,
+                temperature=old_params['temperature'],
+                confidence_threshold=old_params['confidence_threshold'],
+                max_length=old_params['max_length']
+            )
+            print(f"✅ Модель загружена: {new_model_name}")
         elif user_input.lower() == 'validate':
             print("\n🔍 Запуск валидации на размеченных данных...")
             validation_results = analyzer.validate_on_test_data()
