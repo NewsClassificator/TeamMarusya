@@ -1,30 +1,21 @@
-"""
-Специализированные парсеры для конкретных новостных сайтов
-"""
 from bs4 import BeautifulSoup
 from typing import Optional, Dict
 from urllib.parse import urlparse
 
 
-class SiteParser:
-    """Базовый класс для парсеров конкретных сайтов"""
-    
+class SiteParser: # Класс для парсинга конкретного сайта
     @staticmethod
     def clean_text(text: str) -> str:
-        """Очистка текста от лишних пробелов и символов"""
         if not text:
             return ""
         return " ".join(text.split()).strip()
     
     @staticmethod
     def parse(html: str, debug: bool = False) -> Dict[str, Optional[str]]:
-        """Базовый метод парсинга"""
         raise NotImplementedError
 
 
-class LentaParser(SiteParser):
-    """Парсер для Lenta.ru"""
-    
+class LentaParser(SiteParser): 
     @staticmethod
     def parse(html: str, debug: bool = False) -> Dict[str, Optional[str]]:
         soup = BeautifulSoup(html, 'html.parser')
@@ -35,29 +26,29 @@ class LentaParser(SiteParser):
         if title_tag:
             result['title'] = SiteParser.clean_text(title_tag.get_text())
             if debug:
-                print(f"[Lenta.ru] Заголовок найден: {result['title'][:50]}...")
+                print(f"[Lenta.ru] Заголовок: {result['title'][:50]}...")
         
         # Дата
         time_tag = soup.find('time')
         if time_tag:
             result['date'] = time_tag.get('datetime', time_tag.get_text()).strip()
             if debug:
-                print(f"[Lenta.ru] Дата найдена: {result['date']}")
+                print(f"[Lenta.ru] Дата: {result['date']}")
         
-        # Автор - расширенный поиск
+        # Автор
         author_elem = soup.find(class_='topic-authors__name')
         if not author_elem:
             author_elem = soup.find(class_='topic-author__name')
         if author_elem:
             author_text = SiteParser.clean_text(author_elem.get_text())
-            # Добавляем должность если есть
+        # Дополнительная информация об авторе
             job_elem = soup.find(class_='topic-authors__job')
             if job_elem:
                 job_text = SiteParser.clean_text(job_elem.get_text())
                 author_text = f"{author_text} {job_text}"
             result['author'] = author_text
             if debug:
-                print(f"[Lenta.ru] Автор найден: {result['author']}")
+                print(f"[Lenta.ru] Автор: {result['author']}")
         
         # Текст статьи
         article = soup.find('div', class_='topic-body__content')
@@ -65,7 +56,7 @@ class LentaParser(SiteParser):
             article = soup.find('main')
         
         if article:
-            # Удаляем ненужные элементы
+            # Удаление ненужных элементов
             for tag in article(['script', 'style', 'aside', 'nav', 'header', 'footer']):
                 tag.decompose()
             
@@ -75,14 +66,12 @@ class LentaParser(SiteParser):
                              if len(SiteParser.clean_text(p.get_text())) > 30]
                 result['text'] = '\n\n'.join(text_parts)
                 if debug:
-                    print(f"[Lenta.ru] Текст найден: {len(text_parts)} параграфов, {len(result['text'])} символов")
+                    print(f"[Lenta.ru] Текст: {len(text_parts)} параграфов, {len(result['text'])} символов")
         
         return result
 
 
 class RIAParser(SiteParser):
-    """Парсер для RIA.ru (РИА Новости)"""
-    
     @staticmethod
     def parse(html: str, debug: bool = False) -> Dict[str, Optional[str]]:
         soup = BeautifulSoup(html, 'html.parser')
@@ -95,7 +84,7 @@ class RIAParser(SiteParser):
         if title_tag:
             result['title'] = SiteParser.clean_text(title_tag.get_text())
             if debug:
-                print(f"[RIA.ru] Заголовок найден: {result['title'][:50]}...")
+                print(f"[RIA.ru] Заголовок: {result['title'][:50]}...")
         
         # Дата
         date_elem = soup.find('div', class_='article__info-date')
@@ -104,23 +93,23 @@ class RIAParser(SiteParser):
             if time_tag:
                 result['date'] = SiteParser.clean_text(time_tag.get_text())
                 if debug:
-                    print(f"[RIA.ru] Дата найдена: {result['date']}")
+                    print(f"[RIA.ru] Дата: {result['date']}")
         
         # Автор
         author_elem = soup.find('div', class_='article__author')
         if author_elem:
             result['author'] = SiteParser.clean_text(author_elem.get_text())
             if debug:
-                print(f"[RIA.ru] Автор найден: {result['author']}")
+                print(f"[RIA.ru] Автор: {result['author']}")
         
-        # Текст - специфичный формат RIA.ru
+        # Текст - формат RIA.ru
         text_blocks = soup.find_all('div', attrs={'data-type': 'text'})
         if text_blocks:
             text_parts = [SiteParser.clean_text(block.get_text()) for block in text_blocks 
                          if len(SiteParser.clean_text(block.get_text())) > 30]
             result['text'] = '\n\n'.join(text_parts)
             if debug:
-                print(f"[RIA.ru] Текст найден через data-type: {len(text_parts)} блоков")
+                print(f"Текст: {len(text_parts)} блоков")
         else:
             # Запасной вариант
             article = soup.find('div', class_='article__body')
@@ -130,14 +119,12 @@ class RIAParser(SiteParser):
                              if len(SiteParser.clean_text(p.get_text())) > 30]
                 result['text'] = '\n\n'.join(text_parts)
                 if debug:
-                    print(f"[RIA.ru] Текст найден через параграфы: {len(text_parts)} шт.")
+                    print(f"Параграфов: {len(text_parts)} шт.")
         
         return result
 
 
 class RBCParser(SiteParser):
-    """Парсер для RBC.ru"""
-    
     @staticmethod
     def parse(html: str, debug: bool = False) -> Dict[str, Optional[str]]:
         soup = BeautifulSoup(html, 'html.parser')
@@ -150,14 +137,14 @@ class RBCParser(SiteParser):
         if title_tag:
             result['title'] = SiteParser.clean_text(title_tag.get_text())
             if debug:
-                print(f"[RBC.ru] Заголовок найден: {result['title'][:50]}...")
+                print(f"[RBC.ru] Заголовок: {result['title'][:50]}...")
         
         # Дата
         time_tag = soup.find('time')
         if time_tag:
             result['date'] = time_tag.get('datetime', time_tag.get_text()).strip()
             if debug:
-                print(f"[RBC.ru] Дата найдена: {result['date']}")
+                print(f"[RBC.ru] Дата: {result['date']}")
         
         # Автор
         author_elem = soup.find('span', class_='article__authors__author')
@@ -166,7 +153,7 @@ class RBCParser(SiteParser):
         if author_elem:
             result['author'] = SiteParser.clean_text(author_elem.get_text())
             if debug:
-                print(f"[RBC.ru] Автор найден: {result['author']}")
+                print(f"[RBC.ru] Автор: {result['author']}")
         
         # Текст
         article = soup.find('div', class_='article__text')
@@ -182,21 +169,19 @@ class RBCParser(SiteParser):
                          if len(SiteParser.clean_text(p.get_text())) > 30]
             result['text'] = '\n\n'.join(text_parts)
             if debug:
-                print(f"[RBC.ru] Текст найден: {len(text_parts)} параграфов")
+                print(f"[RBC.ru] Текст: {len(text_parts)} параграфов")
         
         return result
 
 
 class RamblerParser(SiteParser):
-    """Парсер для Rambler.ru"""
-    
     @staticmethod
     def parse(html: str, debug: bool = False) -> Dict[str, Optional[str]]:
         soup = BeautifulSoup(html, 'html.parser')
         result = {'title': None, 'text': None, 'date': None, 'author': None}
         
         if debug:
-            print("[Rambler.ru] Начало парсинга")
+            print("Начало парсинга")
         
         # Заголовок
         title_tag = soup.find('h1', class_='article-header__title')
@@ -205,7 +190,7 @@ class RamblerParser(SiteParser):
         if title_tag:
             result['title'] = SiteParser.clean_text(title_tag.get_text())
             if debug:
-                print(f"[Rambler.ru] Заголовок найден: {result['title'][:50]}...")
+                print(f"[Rambler.ru] Заголовок: {result['title'][:50]}...")
         
         # Дата
         time_tag = soup.find('time')
@@ -217,7 +202,7 @@ class RamblerParser(SiteParser):
             result['date'] = time_tag.get('datetime', time_tag.get_text()).strip()
         
         if result['date'] and debug:
-            print(f"[Rambler.ru] Дата найдена: {result['date']}")
+            print(f"[Rambler.ru] Дата: {result['date']}")
         
         # Автор - расширенный поиск
         # Вариант 1: span.article-header__author
@@ -247,7 +232,7 @@ class RamblerParser(SiteParser):
         if author_elem:
             result['author'] = SiteParser.clean_text(author_elem.get_text())
             if debug:
-                print(f"[Rambler.ru] Автор найден: {result['author']}")
+                print(f"[Rambler.ru] Автор: {result['author']}")
         elif debug:
             print("[Rambler.ru] Автор не найден")
         
@@ -274,8 +259,6 @@ class RamblerParser(SiteParser):
 
 
 class MailNewsParser(SiteParser):
-    """Парсер для News.mail.ru"""
-    
     @staticmethod
     def parse(html: str, debug: bool = False) -> Dict[str, Optional[str]]:
         soup = BeautifulSoup(html, 'html.parser')
@@ -320,7 +303,7 @@ class MailNewsParser(SiteParser):
                 if debug:
                     print(f"[Mail.ru News] Автор найден: {result['author']}")
         
-        # Текст - новый подход: ищем специфичные блоки article-item-type="html"
+        # Текст - блоки article-item-type="html"
         article_blocks = soup.find_all('div', attrs={'article-item-type': 'html'})
         if article_blocks:
             if debug:
@@ -340,8 +323,6 @@ class MailNewsParser(SiteParser):
         
         # Запасной вариант для старого формата
         if not result['text']:
-            if debug:
-                print("[Mail.ru News] Пробуем запасной вариант поиска текста")
             article = soup.find('div', class_='article__item_alignment_left')
             if not article:
                 article = soup.find('div', class_='article__body')
@@ -364,7 +345,7 @@ class MailNewsParser(SiteParser):
                 if text_parts:
                     result['text'] = '\n\n'.join(text_parts)
                     if debug:
-                        print(f"[Mail.ru News] Текст найден запасным способом: {len(text_parts)} параграфов")
+                        print(f"[Mail.ru News]{len(text_parts)} параграфов")
         
         if debug:
             print(f"[Mail.ru News] Результат: title={bool(result['title'])}, text={bool(result['text'])}, date={bool(result['date'])}, author={bool(result['author'])}")

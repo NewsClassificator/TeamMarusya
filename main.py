@@ -1,7 +1,3 @@
-"""
-Гибридный парсер новостных сайтов с использованием Oxylabs
-Использует специализированные парсеры для популярных сайтов и AI для остальных
-"""
 import requests
 from pprint import pprint
 from typing import Optional, Dict
@@ -49,9 +45,9 @@ class NewsParser:
         for attempt in range(retry):
             try:
                 if debug:
-                    print(f"[DEBUG] Получение HTML, попытка {attempt + 1}/{retry}...")
+                    print(f"Получение HTML, попытка {attempt + 1}/{retry}...")
                 else:
-                    print(f"⚡ Загрузка страницы, попытка {attempt + 1}/{retry}...")
+                    print(f"Загрузка страницы, попытка {attempt + 1}/{retry}...")
                     
                 response = requests.post(
                     self.api_url,
@@ -72,15 +68,14 @@ class NewsParser:
                 
             except requests.exceptions.Timeout:
                 if attempt < retry - 1:
-                    print(f"⏱️  Timeout - пробуем еще раз...")
+                    print("Timeout")
                     continue
                 else:
-                    print(f"❌ Ошибка: превышено время ожидания после {retry} попыток")
+                    print(f"Ошибка: превышено время ожидания после {retry} попыток")
                     return None
             except requests.exceptions.RequestException as e:
-                print(f"❌ Ошибка при запросе: {e}")
+                print(f"Ошибка при запросе: {e}")
                 if attempt < retry - 1:
-                    print(f"🔄 Пробуем еще раз...")
                     continue
                 return None
         
@@ -150,13 +145,13 @@ class NewsParser:
                 if debug:
                     print(f"[DEBUG] Отправка AI-запроса, попытка {attempt + 1}/{retry}...")
                 else:
-                    print(f"🤖 AI парсинг, попытка {attempt + 1}/{retry}...")
+                    print(f"AI парсинг, попытка {attempt + 1}/{retry}...")
                     
                 response = requests.post(
                     self.api_url,
                     auth=(self.username, self.password),
                     json=payload,
-                    timeout=120  # AI парсинг может занять больше времени
+                    timeout=120
                 )
                 response.raise_for_status()
                 
@@ -169,7 +164,7 @@ class NewsParser:
                 if 'results' in data and len(data['results']) > 0:
                     result = data['results'][0]
                     
-                    # Извлекаем спарсенные данные
+                    # Извлекаем данные
                     if 'content' in result and isinstance(result['content'], dict):
                         parsed_data = result['content']
                         if debug:
@@ -180,15 +175,14 @@ class NewsParser:
                 
             except requests.exceptions.Timeout:
                 if attempt < retry - 1:
-                    print(f"⏱️  Timeout - пробуем еще раз...")
+                    print(f"Timeout")
                     continue
                 else:
-                    print(f"❌ Ошибка: превышено время ожидания после {retry} попыток")
+                    print(f"Ошибка: превышено время ожидания после {retry} попыток")
                     return None
             except requests.exceptions.RequestException as e:
-                print(f"❌ Ошибка при запросе: {e}")
+                print(f"Ошибка при запросе: {e}")
                 if attempt < retry - 1:
-                    print(f"🔄 Пробуем еще раз...")
                     continue
                 return None
         
@@ -270,7 +264,6 @@ class NewsParser:
         Returns:
             Словарь с данными новости
         """
-        print(f"📡 Получаем и парсим страницу: {url}")
         
         # Проверяем, есть ли специализированный парсер для этого сайта
         parser_class = SiteParserFactory.get_parser(url)
@@ -278,12 +271,11 @@ class NewsParser:
         if parser_class:
             # Используем быстрый специализированный парсер
             site_name = parser_class.__name__.replace('Parser', '')
-            print(f"⚡ Используется специализированный парсер для {site_name}")
             
             html = self.fetch_page_html(url, debug=debug)
             
             if not html:
-                print("❌ Не удалось получить страницу")
+                print("Не удалось получить страницу")
                 return {
                     'title': None,
                     'text': None,
@@ -293,7 +285,6 @@ class NewsParser:
                     'error': 'Не удалось получить страницу'
                 }
             
-            print("✅ Парсим данные...")
             result = parser_class.parse(html, debug=debug)
             result['url'] = url
             result['parser_type'] = 'specialized'
@@ -301,12 +292,11 @@ class NewsParser:
             return result
         else:
             # Используем AI-парсер для неизвестных сайтов
-            print(f"🤖 Сайт не распознан, используется AI-парсинг от Oxylabs...")
             
             ai_data = self.fetch_and_parse_with_ai(url, debug=debug)
             
             if not ai_data:
-                print("❌ Не удалось получить или спарсить страницу")
+                print("Не удалось получить или спарсить страницу")
                 return {
                     'title': None,
                     'text': None,
@@ -316,7 +306,6 @@ class NewsParser:
                     'error': 'Не удалось получить страницу'
                 }
             
-            print("✅ Данные получены, обрабатываем...")
             result = self.process_ai_result(ai_data, debug=debug)
             result['url'] = url
             result['parser_type'] = 'ai'
@@ -333,60 +322,44 @@ def main():
     # Создаем парсер
     parser = NewsParser(USERNAME, PASSWORD)
     
-    # Запрашиваем URL у пользователя
-    print("=" * 80)
-    print("🚀 Гибридный парсер новостных сайтов")
-    print("=" * 80)
-    print("\n⚡ Быстрый парсинг для популярных сайтов:")
-    for site in SiteParserFactory.get_supported_sites():
-        print(f"   • {site}")
-    print("\n🤖 AI-парсинг для всех остальных сайтов!")
-    
-    url = input("\n🔗 Введите URL новостной статьи: ").strip()
+    # Запрашиваем URL у пользователя    
+    url = input("Введите URL новостной статьи: ").strip()
     
     if not url:
-        print("❌ Ошибка: URL не может быть пустым")
+        print("Ошибка: URL не может быть пустым")
         return
     
     # Проверяем, что это похоже на URL
     if not url.startswith(('http://', 'https://')):
-        print("❌ Ошибка: URL должен начинаться с http:// или https://")
+        print("Ошибка: URL должен начинаться с http:// или https://")
         return
     
     # Спрашиваем о режиме отладки
-    debug_mode = input("🔍 Включить режим отладки? (y/n, по умолчанию n): ").strip().lower() == 'y'
+    debug_mode = input("Включить режим отладки? (y/n, по умолчанию n): ").strip().lower() == 'y'
     
     # Получаем информацию
-    print("\n" + "=" * 80)
     news_info = parser.get_news_info(url, debug=debug_mode)
     
     # Выводим результаты
-    print("\n" + "=" * 80)
-    print("РЕЗУЛЬТАТЫ ПАРСИНГА")
-    print("=" * 80)
-    
-    print(f"\n📰 ЗАГОЛОВОК:")
+    print(f"\nЗАГОЛОВОК:")
     print(f"   {news_info.get('title', 'Не найдено')}")
     
-    print(f"\n✍️  АВТОР:")
+    print(f"\nАВТОР:")
     print(f"   {news_info.get('author', 'Не найдено')}")
     
-    print(f"\n📅 ДАТА ПУБЛИКАЦИИ:")
+    print(f"\nДАТА ПУБЛИКАЦИИ:")
     print(f"   {news_info.get('date', 'Не найдено')}")
     
-    print(f"\n📝 ТЕКСТ СТАТЬИ:")
+    print(f"\nТЕКСТ СТАТЬИ:")
     text = news_info.get('text', 'Не найдено')
     if text and len(text) > 500:
         print(f"   {text[:500]}...")
-        print(f"\n   (Показано первые 500 символов из {len(text)})")
+        print(f"\n   (Показаны первые 500 символов из {len(text)})")
     else:
         print(f"   {text}")
     
-    print("\n" + "=" * 80)
-    
     # Для отладки - выводим полный JSON
     print("\nПолные данные в JSON формате:")
-    print("-" * 80)
     pprint(news_info)
 
 
