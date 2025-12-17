@@ -1,0 +1,107 @@
+openapi: 3.0.3
+info:
+  title: Clickbait Analysis API
+  version: "0.1.0"
+paths:
+  /clickbait/analyze:
+    post:
+      summary: Evaluate a headline for clickbait characteristics
+      operationId: analyzeClickbait
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClickbaitRequest"
+            example:
+              headline: "Шок! Ученые раскрыли тайну"
+              language: "ru"
+      responses:
+        "200":
+          description: Successful evaluation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClickbaitResponse"
+              example:
+                is_clickbait: true
+                score: 0.86
+                label: "clickbait"
+                confidence_note: null
+                contract_version: "0.1.0"
+                detector_version: "clickbait_model_v1"
+                evaluated_at: "2025-12-17T12:00:00Z"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                code: "VALIDATION_ERROR"
+                message: "headline must not be empty or whitespace"
+        "500":
+          description: Internal error during evaluation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                code: "CLICKBAIT_INIT_ERROR"
+                message: "Clickbait detector unavailable"
+components:
+  schemas:
+    ClickbaitRequest:
+      type: object
+      required: [headline]
+      properties:
+        headline:
+          type: string
+          minLength: 5
+          maxLength: 200
+          description: Headline text to evaluate (trimmed).
+        language:
+          type: string
+          description: Optional language code; defaults to auto/best-effort.
+    ClickbaitResponse:
+      type: object
+      required: [is_clickbait, score, label, contract_version, detector_version]
+      properties:
+        is_clickbait:
+          type: boolean
+          description: True if model considers the headline clickbait at configured threshold.
+        score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Model score for clickbait class.
+        label:
+          type: string
+          description: Human-friendly label for UI.
+        confidence_note:
+          type: string
+          nullable: true
+          description: Present when score near threshold or model uncertainty detected.
+        contract_version:
+          type: string
+          description: Version of this response contract.
+        detector_version:
+          type: string
+          description: Model/checkpoint identifier.
+        evaluated_at:
+          type: string
+          format: date-time
+          description: Timestamp of evaluation.
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string

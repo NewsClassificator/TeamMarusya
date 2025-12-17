@@ -1,0 +1,16 @@
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+
+# Python
+**/__pycache__/
+*.pyc
+backend/src/news_analysis_backend.egg-info/
+
+# Env / локальное
+*.env
+*.env.*
+.codex/
+
+# Модели
+code/klikbait/my_awesome_model/
