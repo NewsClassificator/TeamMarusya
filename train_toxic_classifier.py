@@ -196,11 +196,22 @@ def train_toxic_classifier(
     
     # 3. Загрузка модели и токенизатора
     print(f"\n🤖 Загрузка модели и токенизатора...")
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
     model = AutoModelForSequenceClassification.from_pretrained(
         model_name,
-        num_labels=4  # NORMAL, INSULT, THREAT, OBSCENITY
+        num_labels=4,  # NORMAL, INSULT, THREAT, OBSCENITY
+        local_files_only=True,
+        ignore_mismatched_sizes=True,
     )
+
+    # Обновляем маппинг меток под задачу токсичности
+    model.config.label2id = {
+        'NORMAL': 0,
+        'INSULT': 1,
+        'THREAT': 2,
+        'OBSCENITY': 3,
+    }
+    model.config.id2label = {v: k for k, v in model.config.label2id.items()}
     
     # 4. Создание датасетов
     print(f"\n📦 Создание датасетов...")
@@ -284,7 +295,7 @@ if __name__ == "__main__":
     # Запуск обучения
     trainer, results = train_toxic_classifier(
         dataset_file='dataset.txt',
-        model_name='cointegrated/rubert-tiny',
+        model_name='./rubert_finetuned',
         output_dir='./rubert_toxic_classifier',
         test_size=0.2,
         batch_size=8,

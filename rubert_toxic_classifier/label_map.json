@@ -1,0 +1,6 @@
+{
+  "NORMAL": 0,
+  "INSULT": 1,
+  "THREAT": 2,
+  "OBSCENITY": 3
+}

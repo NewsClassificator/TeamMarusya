@@ -5,31 +5,14 @@ description = "Sentiment analysis for Russian news using rubert-tiny-sentiment-b
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "transformers[torch]>=4.30.0",
-    "torch==2.4.0+cpu",
-    "torchvision==0.19.0+cpu",
-    "torchaudio==2.4.0+cpu",
-    "tokenizers>=0.13.0",
-    "numpy>=1.24.0",
-    "requests>=2.31.0",
-    "pandas>=2.0.0",
-    "beautifulsoup4>=4.12.0",
-    "lxml>=4.9.0",
-    "nltk>=3.8.1",
-    "protobuf>=3.20.0",
-    "safetensors>=0.3.0",
-    "huggingface-hub>=0.16.0",
-    "accelerate>=1.11.0",
-    "sentencepiece>=0.2.1",
-    "tqdm>=4.66.5",
+	"torch",
+	"transformers",
+	"scikit-learn",
+	"numpy",
+	"tqdm",
+	"datasets", # для совместимости с Trainer, если потребуется
+	"safetensors>=0.7.0",
+	"accelerate>=1.12.0",
 ]
 
-[tool.uv.sources]
-torch = { index = "pytorch-cpu" }
-torchvision = { index = "pytorch-cpu" }  
-torchaudio = { index = "pytorch-cpu" }
 
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
