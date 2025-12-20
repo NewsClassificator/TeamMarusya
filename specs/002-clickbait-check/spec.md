@@ -1,6 +1,6 @@
 # Feature Specification: Clickbait Headline Check
 
-**Feature Branch**: `001-clickbait-check`  
+**Feature Branch**: `002-clickbait-check`  
 **Created**: 2025-12-17  
 **Status**: Draft  
 **Input**: User description: "Добавь фичу: проверка заголовков на кликбейт. Используй уже готовый код из code/klikbait, сделай HTTP‑эндпоинт и вывод на фронте рядом с заголовком."

@@ -5,7 +5,7 @@ description: "Task list for Clickbait Headline Check feature"
 
 # Tasks: Clickbait Headline Check
 
-**Input**: Design documents from `/specs/001-clickbait-check/`  
+**Input**: Design documents from `/specs/002-clickbait-check/`  
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
 
 **Tests**: Not explicitly requested; focus on implementation tasks. Add tests later if needed.
@@ -88,9 +88,9 @@ description: "Task list for Clickbait Headline Check feature"
 
 **Purpose**: Finalize docs, accessibility, and resilience across stories.
 
-- [X] T018 [P] Update quickstart instructions with clickbait endpoint usage in specs/001-clickbait-check/quickstart.md
+- [X] T018 [P] Update quickstart instructions with clickbait endpoint usage in specs/002-clickbait-check/quickstart.md
 - [X] T019 [P] Add accessibility notes (aria labels/text) for badges in frontend/app/components/ClickbaitBadge.tsx
-- [X] T020 Capture clickbait contract alignment and examples in specs/001-clickbait-check/contracts/clickbait-analyze.yaml (example payload/response)
+- [X] T020 Capture clickbait contract alignment and examples in specs/002-clickbait-check/contracts/clickbait-analyze.yaml (example payload/response)
 
 ---
 

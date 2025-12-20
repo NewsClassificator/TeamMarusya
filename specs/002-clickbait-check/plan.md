@@ -1,7 +1,7 @@
 # Implementation Plan: Clickbait Headline Check
 
-**Branch**: `001-clickbait-check` | **Date**: 2025-12-17 | **Spec**: specs/001-clickbait-check/spec.md  
-**Input**: Feature specification from `/specs/001-clickbait-check/spec.md`
+**Branch**: `002-clickbait-check` | **Date**: 2025-12-17 | **Spec**: specs/002-clickbait-check/spec.md  
+**Input**: Feature specification from `/specs/002-clickbait-check/spec.md`
 
 ## Summary
 
@@ -23,7 +23,7 @@ Expose a Python clickbait detector (existing `code/klikbait/predict.py` + model 
 ## Constitution Check
 
 - **Python as Source of Truth**: Clickbait inference stays in Python (existing model + predict wrapper). ✔️
-- **Explicit Interface**: New HTTP contract documented in `/specs/001-clickbait-check/contracts/`; versioned fields included. ✔️
+- **Explicit Interface**: New HTTP contract documented in `/specs/002-clickbait-check/contracts/`; versioned fields included. ✔️
 - **Single Responsibility**: Clickbait detector isolated in backend service layer; frontend only renders labels. ✔️
 - **Frontend as Thin Client**: UI reads API response and renders badges; no model logic client-side. ✔️
 - **Deterministic Execution**: Fixed model path/version and deterministic pipeline notes in quickstart/contracts. ✔️
@@ -33,7 +33,7 @@ Expose a Python clickbait detector (existing `code/klikbait/predict.py` + model 
 ### Documentation (this feature)
 
 ```text
-specs/001-clickbait-check/
+specs/002-clickbait-check/
 ├── plan.md
 ├── research.md
 ├── data-model.md
@@ -83,13 +83,13 @@ frontend/
 - Response payload: `is_clickbait` (bool), `score` (0–1), `label` (string), optional `confidence_note`, `version`/`contract_version` fields, and `errors` array on failure.
 
 **Research output**
-- Documented in `specs/001-clickbait-check/research.md` with decisions, rationale, and alternatives. All clarifications resolved with inference-only assumption noted.
+- Documented in `specs/002-clickbait-check/research.md` with decisions, rationale, and alternatives. All clarifications resolved with inference-only assumption noted.
 
 ## Phase 1: Design & Contracts
 
-- Data model recorded in `specs/001-clickbait-check/data-model.md` (Headline, ClickbaitEvaluation with validation).
-- API contract added in `specs/001-clickbait-check/contracts/clickbait-analyze.yaml` for POST `/clickbait/analyze`.
-- Quickstart in `specs/001-clickbait-check/quickstart.md` covering backend/ frontend steps and model location.
+- Data model recorded in `specs/002-clickbait-check/data-model.md` (Headline, ClickbaitEvaluation with validation).
+- API contract added in `specs/002-clickbait-check/contracts/clickbait-analyze.yaml` for POST `/clickbait/analyze`.
+- Quickstart in `specs/002-clickbait-check/quickstart.md` covering backend/ frontend steps and model location.
 - Agent context refreshed via `.specify/scripts/bash/update-agent-context.sh codex`.
 - Constitution Check (post-design): PASS — Python owns inference; explicit contract documented; frontend remains thin; deterministic model/version noted.
 

@@ -2,7 +2,7 @@
  
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
 **Created**: 2025-12-17  
-**Feature**: specs/001-clickbait-check/spec.md
+**Feature**: specs/002-clickbait-check/spec.md
  
 ## Content Quality
  
