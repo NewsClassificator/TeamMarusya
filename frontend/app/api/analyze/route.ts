@@ -6,7 +6,7 @@ const API_BASE =
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  const response = await fetch(`${API_BASE}/analyze`, {
+  const response = await fetch(`${API_BASE}/analysis`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -18,4 +18,3 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(data, { status: response.status });
 }
-

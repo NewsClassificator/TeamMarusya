@@ -12,7 +12,7 @@ def test_missing_both_url_and_text_returns_400() -> None:
         "language": "ru",
     }
 
-    response = client.post("/analyze", json=payload)
+    response = client.post("/analysis", json=payload)
     assert response.status_code == 400
 
 
@@ -24,6 +24,5 @@ def test_both_url_and_text_provided_returns_400() -> None:
         "language": "ru",
     }
 
-    response = client.post("/analyze", json=payload)
+    response = client.post("/analysis", json=payload)
     assert response.status_code == 400
-

@@ -27,7 +27,37 @@ class LentaParser(SiteParser):
         
         time_tag = soup.find('time')
         if time_tag:
-            result['date'] = time_tag.get('datetime', time_tag.get_text()).strip()
+            # Некоторые страницы Ленты содержат пустой <time>, поэтому проверяем,
+            # что значение не пустое перед использованием.
+            candidate = time_tag.get('datetime', time_tag.get_text()).strip()
+            if candidate:
+                result['date'] = candidate
+
+        if not result['date']:
+            # Дата и время зашиты в ссылке вида
+            # <a class="topic-header__item topic-header__time"
+            #    href="/2025/12/20/">17:57, 20 декабря 2025</a>
+            # В DOM у этого тега обычно несколько классов, поэтому ищем по одному
+            # устойчивому классу, а не по всей строке.
+            date_link = soup.find('a', class_='topic-header__time')
+            if date_link:
+                href = (date_link.get('href') or "").strip("/")
+                parts = href.split("/")
+                iso_date = None
+                if len(parts) >= 3 and all(p.isdigit() for p in parts[:3]):
+                    year, month, day = parts[:3]
+                    iso_date = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+
+                raw_text = SiteParser.clean_text(date_link.get_text())
+                time_part = raw_text.split(",")[0].strip() if raw_text else ""
+
+                if iso_date and time_part:
+                    # YYYY-MM-DD HH:MM — хорошо парсится компонентом freshness
+                    result['date'] = f"{iso_date} {time_part}"
+                elif iso_date:
+                    result['date'] = iso_date
+                elif raw_text:
+                    result['date'] = raw_text
         
         author_elem = soup.find(class_='topic-authors__name')
         if not author_elem:

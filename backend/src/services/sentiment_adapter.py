@@ -71,3 +71,39 @@ def get_model_version() -> str:
     return MODEL_VERSION
 
 
+def summarize_sentiment(text: str) -> Dict[str, Any]:
+    """
+    Analyze sentiment for a single text segment and map to contract fields.
+    """
+    raw = analyze_sentiment(text)
+    return {
+        "text": text,
+        "sentiment_label": map_label_to_contract(raw.get("predicted_label", "NEUTRAL")),
+        "confidence": float(raw.get("confidence", 0.0)),
+    }
+
+
+def analyze_sentiment_segments(main_text: str, quotes: list[str]) -> Dict[str, Any]:
+    """
+    Analyze sentiment for main text (with placeholders) and each quote individually.
+    """
+    main_summary = summarize_sentiment(main_text)
+
+    quote_summaries = []
+    for idx, quote_text in enumerate(quotes):
+        summary = summarize_sentiment(quote_text)
+        quote_summaries.append(
+            {
+                "quote_text": quote_text,
+                "sentiment_label": summary["sentiment_label"],
+                "confidence": summary["confidence"],
+                "position": idx,
+            }
+        )
+
+    return {
+        "main_text": main_summary,
+        "quotes": quote_summaries,
+        "errors": [],
+    }
+

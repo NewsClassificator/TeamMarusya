@@ -13,6 +13,10 @@ class AnalyzeRequest(BaseModel):
         default=None,
         description="Required when input_type=text",
     )
+    published_date: Optional[str] = Field(
+        default=None,
+        description="Optional publish date override for text inputs",
+    )
     language: str = Field(default="ru")
     request_id: Optional[str] = None
 
@@ -42,22 +46,51 @@ class ArticleContent(BaseModel):
     content: str
 
 
+class FreshnessResult(BaseModel):
+    status: Literal["today", "yesterday", "recent", "stale", "unknown"]
+    age_days: Optional[int] = None
+    reference_date: str
+    message: str
+    source_date: Optional[str] = None
+
+
+class QuoteSentiment(BaseModel):
+    quote_text: str
+    sentiment_label: Literal["positive", "neutral", "negative"]
+    confidence: float
+    position: int
+    author: Optional[str] = None
+
+
+class SentimentSummary(BaseModel):
+    text: str
+    sentiment_label: Literal["positive", "neutral", "negative"]
+    confidence: float
+
+
 class SentimentResult(BaseModel):
-    label: Literal["positive", "neutral", "negative"]
-    score: float
+    main_text: SentimentSummary
+    quotes: list[QuoteSentiment]
+    errors: list[str] = Field(default_factory=list)
+
+
+class AnalysisMeta(BaseModel):
+    contract_version: str
+    analysis_version: str
+    analyzed_at: str
+    seed: int
 
 
 class AnalyzeResponse(BaseModel):
     request_id: Optional[str] = None
-    contract_version: str
-    model_version: str
-    seed: int
     article: ArticleContent
+    freshness: FreshnessResult
     sentiment: SentimentResult
+    meta: AnalysisMeta
+    errors: list[str] = Field(default_factory=list)
 
 
 class ErrorResponse(BaseModel):
     code: str
     message: str
     details: Optional[dict] = None
-
