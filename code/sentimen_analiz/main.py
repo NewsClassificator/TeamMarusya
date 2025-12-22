@@ -6,7 +6,6 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 
 class RuBERTSentimentAnalyzer:
-    """Анализатор эмоционального окраса текстов на основе RuBERT модели."""
 
     def __init__(
         self,
@@ -37,13 +36,11 @@ class RuBERTSentimentAnalyzer:
         }
 
     def update_parameters(self, **kwargs):
-        """Обновление параметров модели во время работы."""
         for param, value in kwargs.items():
             if hasattr(self, param):
                 setattr(self, param, value)
 
     def get_parameters(self) -> Dict:
-        """Получение текущих параметров модели."""
         return {
             "model_name": self.model_name,
             "max_length": self.max_length,
@@ -54,7 +51,6 @@ class RuBERTSentimentAnalyzer:
         }
 
     def chunk_text(self, text: str, chunk_size: int = 500) -> List[str]:
-        """Разбивает текст на фрагменты по количеству токенов."""
         tokens = self.tokenizer.encode(text, add_special_tokens=False)
         if len(tokens) <= self.max_length - 2:
             return [text]
@@ -67,7 +63,6 @@ class RuBERTSentimentAnalyzer:
         return chunks
 
     def predict_sentiment(self, text: str) -> Dict[str, any]:
-        """Анализ эмоционального окраса одного текста."""
         inputs = self.tokenizer(
             text,
             return_tensors="pt",
@@ -103,7 +98,6 @@ class RuBERTSentimentAnalyzer:
         }
 
     def predict_sentiment_with_chunking(self, text: str) -> Dict[str, any]:
-        """Анализ эмоционального окраса с поддержкой чанкования для длинных текстов."""
         chunks = self.chunk_text(text)
         if len(chunks) == 1:
             result = self.predict_sentiment(text)
@@ -129,7 +123,6 @@ class RuBERTSentimentAnalyzer:
     def aggregate_chunk_results(
         self, chunk_results: List[Dict], original_text: str
     ) -> Dict[str, any]:
-        """Агрегирует результаты анализа фрагментов."""
         from collections import Counter
 
         valid_predictions = []

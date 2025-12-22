@@ -5,30 +5,25 @@ import joblib
 import pandas as pd
 import pymorphy3
 from collections import Counter
-import nltk
-from nltk.corpus import stopwords
 
 warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
 
 
 class WaterAnalyzer:
-    
-    def __init__(self, model_path: str = "logreg_water_model.pkl"):
+    """
+    Analyzer for text wateriness using a scikit-learn model.
+    Uses readability and POS-based ratios as features and returns probability of water.
+    """
+
+    def __init__(self, model_path: str = "ruber_quality_model.pkl"):
         self.model = joblib.load(model_path)
         self.morph = pymorphy3.MorphAnalyzer()
-        
-        try:
-            self.ru_stopwords = set(stopwords.words("russian"))
-        except LookupError:
-            nltk.download('stopwords', quiet=True)
-            self.ru_stopwords = set(stopwords.words("russian"))
-        
+
         self.feature_names = [
-            "readability_index", 
-            "stopword_ratio", 
-            "adj_ratio", 
-            "adv_ratio", 
-            "repetition_ratio"
+            "readability_index",
+            "adj_ratio",
+            "adv_ratio",
+            "repetition_ratio",
         ]
     
     def count_syllables(self, word: str) -> int:
@@ -55,15 +50,6 @@ class WaterAnalyzer:
         
         index = 206.835 - 1.3 * (words / sentences) - 60.1 * (syllables / words)
         return round(index, 2)
-    
-    def stopword_ratio(self, text: str) -> float:
-        words = re.findall(r'\b[а-яА-ЯёЁ]+\b', text.lower())
-        
-        if len(words) == 0:
-            return 0.0
-        
-        stopword_count = sum(1 for word in words if word in self.ru_stopwords)
-        return stopword_count / len(words)
     
     def pos_ratios(self, text: str) -> Tuple[float, float]:
         words = re.findall(r'\b[а-яА-ЯёЁ]+\b', text)
@@ -92,13 +78,11 @@ class WaterAnalyzer:
     
     def extract_features(self, text: str) -> Dict[str, float]:
         readability = self.readability_index(text)
-        stopword_r = self.stopword_ratio(text)
         adj_r, adv_r = self.pos_ratios(text)
         rep_r = self.repetition_ratio(text)
         
         return {
             "readability_index": readability,
-            "stopword_ratio": stopword_r,
             "adj_ratio": adj_r,
             "adv_ratio": adv_r,
             "repetition_ratio": rep_r
@@ -108,21 +92,30 @@ class WaterAnalyzer:
         features = self.extract_features(text)
         X = pd.DataFrame([features])[self.feature_names].values
         
-        prediction = self.model.predict(X)[0]
-        proba = self.model.predict_proba(X)[0]
-        
+        try:
+            proba_all = self.model.predict(X)
+            water_proba = float(proba_all[0])
+        except Exception:
+            proba_all = self.model.predict_proba(X)[0]
+            water_proba = float(proba_all[0]) if len(proba_all) > 0 else 0.0
+
+        water_proba = max(0.0, min(1.0, water_proba))
+        is_water = bool(water_proba >= 0.5)
+        label = "ВОДА" if is_water else "НЕ ВОДА"
+
         result = {
             "text": text,
-            "is_water": bool(prediction),
-            "water_label": "ВОДА" if prediction == 1 else "НЕ ВОДА",
-            "confidence": float(proba[prediction]),
+            "is_water": is_water,
+            "water_label": label,
+            "confidence": water_proba,
+            "water_percentage": water_proba * 100,
             "features": features
         }
         
         if return_proba:
             result["probabilities"] = {
-                "not_water": float(proba[0]),
-                "water": float(proba[1])
+                "water": water_proba,
+                "not_water": 1 - water_proba,
             }
         
         return result
@@ -139,14 +132,6 @@ class WaterAnalyzer:
             interpretations["readability"] = "тяжеловато читается"
         else:
             interpretations["readability"] = "сложно читается"
-        
-        sw = features["stopword_ratio"]
-        if sw < 0.25:
-            interpretations["stopwords"] = "плотный текст"
-        elif sw < 0.35:
-            interpretations["stopwords"] = "нормально"
-        else:
-            interpretations["stopwords"] = "подозрение на воду"
         
         adj = features["adj_ratio"]
         if adj < 0.12:

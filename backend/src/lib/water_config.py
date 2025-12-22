@@ -5,7 +5,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 WATER_MODEL_PATH = Path(
-    os.getenv("WATER_MODEL_PATH", REPO_ROOT / "code/water/logreg_water_model.pkl")
+    os.getenv("WATER_MODEL_PATH", REPO_ROOT / "code/water/ruber_quality_model.pkl")
 ).resolve()
 WATER_MODULE_PATH = Path(
     os.getenv("WATER_MODULE_PATH", REPO_ROOT / "code/water/water_analyzer.py")

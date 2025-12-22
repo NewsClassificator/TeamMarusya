@@ -8,10 +8,10 @@ from src.lib.water_config import TEXT_MAX_LENGTH, TEXT_MIN_LENGTH
 
 class FeatureMetrics(BaseModel):
     readability_index: float = Field(default=0.0)
-    stopword_ratio: float = Field(default=0.0)
     adj_ratio: float = Field(default=0.0)
     adv_ratio: float = Field(default=0.0)
     repetition_ratio: float = Field(default=0.0)
+    stopword_ratio: Optional[float] = Field(default=None, description="Deprecated; may be absent.")
 
 
 class WaterAnalyzeRequest(BaseModel):
@@ -38,6 +38,7 @@ class WaterAnalyzeResponse(BaseModel):
     is_water: bool
     label: str
     confidence: float = Field(ge=0.0, le=1.0)
+    water_percentage: Optional[float] = Field(default=None, description="Water probability in percent (0-100).")
     features: Optional[FeatureMetrics] = None
     interpretations: Optional[Dict[str, str]] = None
     contract_version: str

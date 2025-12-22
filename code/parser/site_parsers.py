@@ -27,18 +27,11 @@ class LentaParser(SiteParser):
         
         time_tag = soup.find('time')
         if time_tag:
-            # Некоторые страницы Ленты содержат пустой <time>, поэтому проверяем,
-            # что значение не пустое перед использованием.
             candidate = time_tag.get('datetime', time_tag.get_text()).strip()
             if candidate:
                 result['date'] = candidate
 
         if not result['date']:
-            # Дата и время зашиты в ссылке вида
-            # <a class="topic-header__item topic-header__time"
-            #    href="/2025/12/20/">17:57, 20 декабря 2025</a>
-            # В DOM у этого тега обычно несколько классов, поэтому ищем по одному
-            # устойчивому классу, а не по всей строке.
             date_link = soup.find('a', class_='topic-header__time')
             if date_link:
                 href = (date_link.get('href') or "").strip("/")
@@ -52,7 +45,6 @@ class LentaParser(SiteParser):
                 time_part = raw_text.split(",")[0].strip() if raw_text else ""
 
                 if iso_date and time_part:
-                    # YYYY-MM-DD HH:MM — хорошо парсится компонентом freshness
                     result['date'] = f"{iso_date} {time_part}"
                 elif iso_date:
                     result['date'] = iso_date
@@ -279,8 +271,6 @@ class MailNewsParser(SiteParser):
 
 
 class SiteParserFactory:
-    """Фабрика для выбора правильного парсера на основе домена"""
-    
     SUPPORTED_SITES = {
         'lenta.ru': LentaParser,
         'ria.ru': RIAParser,
@@ -291,29 +281,17 @@ class SiteParserFactory:
     
     @classmethod
     def get_parser(cls, url: str) -> Optional[type]:
-        """
-        Получить парсер для URL
-        
-        Args:
-            url: URL новостной статьи
-            
-        Returns:
-            Класс парсера или None если сайт не поддерживается
-        """
         try:
             parsed_url = urlparse(url)
             domain = parsed_url.netloc.lower()
-            
-            # Убираем www. если есть
+
             if domain.startswith('www.'):
                 domain = domain[4:]
             
-            # Проверяем прямое совпадение
             parser = cls.SUPPORTED_SITES.get(domain)
             if parser:
                 return parser
             
-            # Проверяем поддомены Rambler (news.rambler.ru, finance.rambler.ru, sport.rambler.ru и т.д.)
             if domain.endswith('.rambler.ru'):
                 return RamblerParser
             
@@ -323,10 +301,8 @@ class SiteParserFactory:
     
     @classmethod
     def is_supported(cls, url: str) -> bool:
-        """Проверить, поддерживается ли сайт"""
         return cls.get_parser(url) is not None
     
     @classmethod
     def get_supported_sites(cls) -> list:
-        """Получить список поддерживаемых сайтов"""
         return list(cls.SUPPORTED_SITES.keys())

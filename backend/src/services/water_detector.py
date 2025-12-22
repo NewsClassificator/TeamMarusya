@@ -53,10 +53,12 @@ def _map_features(raw: Dict[str, Any] | None) -> FeatureMetrics | None:
         return None
     return FeatureMetrics(
         readability_index=_safe_float(raw.get("readability_index")),
-        stopword_ratio=_safe_float(raw.get("stopword_ratio")),
         adj_ratio=_safe_float(raw.get("adj_ratio")),
         adv_ratio=_safe_float(raw.get("adv_ratio")),
         repetition_ratio=_safe_float(raw.get("repetition_ratio")),
+        stopword_ratio=_safe_float(raw.get("stopword_ratio"))
+        if raw.get("stopword_ratio") is not None
+        else None,
     )
 
 
@@ -66,6 +68,7 @@ def _fallback_response(message: str) -> WaterAnalyzeResponse:
         is_water=False,
         label="status unavailable",
         confidence=0.0,
+        water_percentage=0.0,
         features=None,
         interpretations=None,
         contract_version=WATER_CONTRACT_VERSION,
@@ -84,10 +87,7 @@ def analyze_water(payload: WaterAnalyzeRequest) -> WaterAnalyzeResponse:
     try:
         analyzer = _get_analyzer()
     except Exception as exc:  # pragma: no cover - defensive path
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"code": "WATER_INIT_ERROR", "message": str(exc)},
-        ) from exc
+        return _fallback_response(f"water detector init error: {exc}")
 
     try:
         result = analyzer.analyze(payload.text, detailed=payload.include_features)
@@ -99,13 +99,20 @@ def analyze_water(payload: WaterAnalyzeRequest) -> WaterAnalyzeResponse:
         result.get("interpretations") if payload.include_features else None
     )
 
-    return WaterAnalyzeResponse(
+    response = WaterAnalyzeResponse(
         is_water=bool(result.get("is_water")),
         label=str(result.get("water_label") or ""),
         confidence=_safe_float(result.get("confidence")),
+        water_percentage=_safe_float(result.get("water_percentage")),
         features=features,
         interpretations=interpretations,
         contract_version=WATER_CONTRACT_VERSION,
         detector_version=WATER_DETECTOR_VERSION,
         evaluated_at=datetime.now(timezone.utc),
     )
+
+    # Ensure percentage present for clients expecting explicit percent
+    if response.water_percentage is None:
+        response.water_percentage = response.confidence * 100
+
+    return response

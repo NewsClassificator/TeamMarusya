@@ -1,10 +1,7 @@
-"""Инференс для определения кликбейтных заголовков без CLI и отладочных выводов."""
-
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
 
 class ClickbaitDetector:
-    """Детектор кликбейтных заголовков."""
 
     def __init__(self, model_path: str = "my_awesome_model"):
         import os
@@ -25,15 +22,12 @@ class ClickbaitDetector:
         )
 
     def predict(self, text: str):
-        """Предсказание для одного заголовка."""
         result = self.classifier(text)[0]
         return result
 
     def predict_batch(self, texts):
-        """Предсказание для списка заголовков."""
         return self.classifier(texts)
 
     def is_clickbait(self, text: str, threshold: float = 0.5) -> bool:
-        """Возвращает True, если заголовок кликбейтный по заданному порогу."""
         result = self.predict(text)
         return result["label"] == "кликбейт" and result["score"] >= threshold

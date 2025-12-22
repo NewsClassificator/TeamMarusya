@@ -7,22 +7,12 @@ from site_parsers import SiteParserFactory
 
 
 class NewsParser:
-    """Класс для гибридного парсинга новостных сайтов через Oxylabs."""
-
     def __init__(self, username: str, password: str):
-        """
-        Инициализация парсера
-        
-        Args:
-            username: Имя пользователя Oxylabs
-            password: Пароль Oxylabs
-        """
         self.username = username
         self.password = password
         self.api_url = 'https://realtime.oxylabs.io/v1/queries'
     
     def fetch_page_html(self, url: str, retry: int = 2, debug: bool = False) -> Optional[str]:
-        """Получение HTML страницы через Oxylabs (без AI парсинга)."""
         payload = {
             'source': 'universal',
             'url': url,
@@ -61,7 +51,6 @@ class NewsParser:
         return None
     
     def fetch_and_parse_with_ai(self, url: str, retry: int = 2, debug: bool = False) -> Optional[Dict]:
-        """Получение и AI-парсинг новостной статьи через Oxylabs."""
         parsing_instructions = {
             "title": {
                 "_fns": [
@@ -138,7 +127,6 @@ class NewsParser:
         return None
     
     def process_ai_result(self, ai_data: Dict, debug: bool = False) -> Dict[str, Optional[str]]:
-        """Обработка результатов AI-парсинга."""
         result = {
             'title': None,
             'text': None,
@@ -179,7 +167,6 @@ class NewsParser:
         return result
     
     def get_news_info(self, url: str, debug: bool = False) -> Dict[str, Optional[str]]:
-        """Полный процесс парсинга новости (гибридный подход)."""
         parser_class = SiteParserFactory.get_parser(url)
         
         if parser_class:
