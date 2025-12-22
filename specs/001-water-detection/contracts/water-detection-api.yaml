@@ -1,0 +1,122 @@
+openapi: 3.0.3
+info:
+  title: Water Content Detection API
+  version: 1.0.0
+  description: HTTP contract for water/not-water analysis surfaced to the frontend.
+servers:
+  - url: http://localhost:8000
+paths:
+  /api/water-detection:
+    post:
+      summary: Analyze text for water content
+      operationId: analyzeWater
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaterDetectionRequest'
+      responses:
+        '200':
+          description: Water detection result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaterDetectionResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    WaterDetectionRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Text to analyze (20–10,000 characters after trim).
+          minLength: 20
+          maxLength: 10000
+        include_features:
+          type: boolean
+          description: Include feature metrics in the response.
+          default: true
+        language:
+          type: string
+          description: Optional language hint for messaging (not used for model routing).
+
+    FeatureMetrics:
+      type: object
+      properties:
+        readability_index:
+          type: number
+          format: float
+        stopword_ratio:
+          type: number
+          format: float
+        adj_ratio:
+          type: number
+          format: float
+        adv_ratio:
+          type: number
+          format: float
+        repetition_ratio:
+          type: number
+          format: float
+
+    FeatureInterpretations:
+      type: object
+      additionalProperties:
+        type: string
+      description: Human-readable hints per feature (e.g., readability, stopwords, adjectives, adverbs, repetitions).
+
+    WaterDetectionResponse:
+      type: object
+      required:
+        - is_water
+        - label
+        - confidence
+        - version
+      properties:
+        is_water:
+          type: boolean
+        label:
+          type: string
+          description: Short label, e.g., "ВОДА" or "НЕ ВОДА".
+        confidence:
+          type: number
+          format: float
+          description: Probability of the predicted class.
+        features:
+          $ref: '#/components/schemas/FeatureMetrics'
+        interpretations:
+          $ref: '#/components/schemas/FeatureInterpretations'
+        version:
+          type: string
+          description: Detector/contract version token.
+        errors:
+          type: array
+          items:
+            type: string
+          description: Present only on partial/fallback responses.
+
+    ErrorResponse:
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          items:
+            type: string

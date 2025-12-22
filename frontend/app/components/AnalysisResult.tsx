@@ -1,4 +1,5 @@
 import { ClickbaitBadge } from "./ClickbaitBadge";
+import { WaterBadge } from "./WaterBadge";
 
 type FreshnessStatus = "today" | "yesterday" | "recent" | "stale" | "unknown";
 
@@ -60,12 +61,24 @@ type ClickbaitResult = {
   confidence_note?: string | null;
 };
 
+type WaterResult = {
+  is_water: boolean;
+  label: string;
+  confidence: number;
+  features?: Record<string, number>;
+  interpretations?: Record<string, string>;
+  errors?: string[];
+};
+
 interface AnalysisResultProps {
   data: AnalysisResponse | null;
   error: string | null;
   clickbaitState?: "idle" | "loading" | "success" | "error";
   clickbaitResult?: ClickbaitResult | null;
   clickbaitError?: string | null;
+  waterState?: "idle" | "loading" | "success" | "error";
+  waterResult?: WaterResult | null;
+  waterError?: string | null;
 }
 
 function formatFreshnessLabel(freshness: Freshness) {
@@ -93,6 +106,9 @@ export function AnalysisResult({
   clickbaitState = "idle",
   clickbaitResult,
   clickbaitError,
+  waterState = "idle",
+  waterResult,
+  waterError,
 }: AnalysisResultProps) {
   if (error) {
     return (
@@ -135,6 +151,11 @@ export function AnalysisResult({
               result={clickbaitResult ?? undefined}
               error={clickbaitError ?? undefined}
             />
+            <WaterBadge
+              state={waterState}
+              result={waterResult ?? undefined}
+              error={waterError ?? undefined}
+            />
           </div>
         )}
         <div className="text-sm text-zinc-600 space-y-1">
@@ -169,6 +190,60 @@ export function AnalysisResult({
           </p>
         )}
       </div>
+
+      {waterState !== "idle" && (
+        <div className="rounded-md border border-zinc-200 bg-white px-4 py-3 space-y-2">
+          <p className="text-sm font-medium text-zinc-800">Водность текста</p>
+
+          {waterState === "loading" && (
+            <p className="text-sm text-zinc-600">Проверяем воду…</p>
+          )}
+
+          {waterState === "error" && (
+            <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+              {waterError ?? "Статус недоступен"}
+            </p>
+          )}
+
+          {waterState === "success" && waterResult && (
+            <div className="space-y-2">
+              <p className="text-sm text-zinc-800 flex items-center gap-2">
+                <span className="font-semibold">
+                  {waterResult.label || (waterResult.is_water ? "ВОДА" : "НЕ ВОДА")}
+                </span>
+                <span className="text-xs text-zinc-600">
+                  {(waterResult.confidence * 100).toFixed(0)}%
+                </span>
+              </p>
+              {waterResult.interpretations && (
+                <ul className="text-sm text-zinc-700 space-y-1">
+                  {Object.entries(waterResult.interpretations).map(
+                    ([key, value]) =>
+                      value ? (
+                        <li key={key} className="flex gap-2">
+                          <span className="text-xs uppercase text-zinc-500">{key}:</span>
+                          <span>{value}</span>
+                        </li>
+                      ) : null,
+                  )}
+                </ul>
+              )}
+              {waterResult.features && (
+                <div className="text-xs text-zinc-600 grid grid-cols-2 gap-x-4 gap-y-1">
+                  {Object.entries(waterResult.features).map(([k, v]) => (
+                    <div key={k} className="flex justify-between">
+                      <span className="uppercase">{k}</span>
+                      <span className="font-medium text-zinc-800">
+                        {typeof v === "number" ? v.toFixed(3) : String(v)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="rounded-md border border-zinc-200 bg-white px-4 py-3 space-y-2">
         <p className="text-sm font-medium text-zinc-800">
