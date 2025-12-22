@@ -144,7 +144,12 @@ class NewsParser:
         if 'text' in ai_data:
             text_data = ai_data['text']
             if isinstance(text_data, list):
-                text_parts = [t.strip() for t in text_data if isinstance(t, str) and len(t.strip()) > 20]
+                text_parts = []
+                for t in text_data:
+                    if isinstance(t, str):
+                        stripped = t.strip()
+                        if len(stripped) > 20:
+                            text_parts.append(stripped)
                 if text_parts:
                     result['text'] = '\n\n'.join(text_parts)
             elif isinstance(text_data, str):

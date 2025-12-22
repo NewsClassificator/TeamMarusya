@@ -27,15 +27,16 @@ class WaterAnalyzer:
     
     def analyze_text_simple(self, text: str) -> Tuple[int, int, int]:
         raw_sentences = re.split(r'[.!?…]+', text)
-        sentences = [s.strip() for s in raw_sentences if s.strip()]
         words = re.findall(r'\b[а-яА-ЯёЁ]+\b', text)
-        
         syllables = 0
         for word in words:
             normal_word = self.morph.parse(word)[0].normal_form
             syllables += self.count_syllables(normal_word)
-        
-        return len(sentences), len(words), syllables
+        cleaned_sentences = []
+        for s in raw_sentences:
+            if s.strip():
+                cleaned_sentences.append(s.strip())
+        return len(cleaned_sentences), len(words), syllables
     
     def readability_index(self, text: str) -> float:
         sentences, words, syllables = self.analyze_text_simple(text)
@@ -163,7 +164,10 @@ class WaterAnalyzer:
         return result
     
     def analyze_batch(self, texts: List[str]) -> List[Dict]:
-        return [self.analyze(text, detailed=True) for text in texts]
+        results = []
+        for text in texts:
+            results.append(self.analyze(text, detailed=True))
+        return results
     
     def analyze_csv(self, csv_path: str, text_column: str = "text", 
                     output_path: str = None) -> pd.DataFrame:
@@ -177,13 +181,24 @@ class WaterAnalyzer:
             result = self.predict(text, return_proba=True)
             results.append(result)
         
-        df["is_water"] = [r["is_water"] for r in results]
-        df["water_label"] = [r["water_label"] for r in results]
-        df["confidence"] = [r["confidence"] for r in results]
-        df["water_probability"] = [r["probabilities"]["water"] for r in results]
-        
+        is_water_values = []
+        water_label_values = []
+        confidence_values = []
+        water_prob_values = []
+        for r in results:
+            is_water_values.append(r["is_water"])
+            water_label_values.append(r["water_label"])
+            confidence_values.append(r["confidence"])
+            water_prob_values.append(r["probabilities"]["water"])
+        df["is_water"] = is_water_values
+        df["water_label"] = water_label_values
+        df["confidence"] = confidence_values
+        df["water_probability"] = water_prob_values
         for feature in self.feature_names:
-            df[feature] = [r["features"][feature] for r in results]
+            feature_values = []
+            for r in results:
+                feature_values.append(r["features"][feature])
+            df[feature] = feature_values
         
         if output_path:
             df.to_csv(output_path, index=False, encoding='utf-8-sig')

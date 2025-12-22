@@ -71,8 +71,11 @@ class LentaParser(SiteParser):
             
             paragraphs = article.find_all('p')
             if paragraphs:
-                text_parts = [SiteParser.clean_text(p.get_text()) for p in paragraphs 
-                             if len(SiteParser.clean_text(p.get_text())) > 30]
+                text_parts = []
+                for p in paragraphs:
+                    cleaned = SiteParser.clean_text(p.get_text())
+                    if len(cleaned) > 30:
+                        text_parts.append(cleaned)
                 result['text'] = '\n\n'.join(text_parts)
         
         return result
@@ -101,15 +104,21 @@ class RIAParser(SiteParser):
         
         text_blocks = soup.find_all('div', attrs={'data-type': 'text'})
         if text_blocks:
-            text_parts = [SiteParser.clean_text(block.get_text()) for block in text_blocks 
-                         if len(SiteParser.clean_text(block.get_text())) > 30]
+            text_parts = []
+            for block in text_blocks:
+                cleaned = SiteParser.clean_text(block.get_text())
+                if len(cleaned) > 30:
+                    text_parts.append(cleaned)
             result['text'] = '\n\n'.join(text_parts)
         else:
             article = soup.find('div', class_='article__body')
             if article:
                 paragraphs = article.find_all('p')
-                text_parts = [SiteParser.clean_text(p.get_text()) for p in paragraphs 
-                             if len(SiteParser.clean_text(p.get_text())) > 30]
+                text_parts = []
+                for p in paragraphs:
+                    cleaned = SiteParser.clean_text(p.get_text())
+                    if len(cleaned) > 30:
+                        text_parts.append(cleaned)
                 result['text'] = '\n\n'.join(text_parts)
         
         return result
@@ -145,8 +154,11 @@ class RBCParser(SiteParser):
                 tag.decompose()
             
             paragraphs = article.find_all('p')
-            text_parts = [SiteParser.clean_text(p.get_text()) for p in paragraphs 
-                         if len(SiteParser.clean_text(p.get_text())) > 30]
+            text_parts = []
+            for p in paragraphs:
+                cleaned = SiteParser.clean_text(p.get_text())
+                if len(cleaned) > 30:
+                    text_parts.append(cleaned)
             result['text'] = '\n\n'.join(text_parts)
         
         return result
@@ -198,8 +210,11 @@ class RamblerParser(SiteParser):
                 tag.decompose()
             
             paragraphs = article.find_all('p')
-            text_parts = [SiteParser.clean_text(p.get_text()) for p in paragraphs 
-                         if len(SiteParser.clean_text(p.get_text())) > 30]
+            text_parts = []
+            for p in paragraphs:
+                cleaned = SiteParser.clean_text(p.get_text())
+                if len(cleaned) > 30:
+                    text_parts.append(cleaned)
             result['text'] = '\n\n'.join(text_parts)
         
         return result
@@ -258,12 +273,25 @@ class MailNewsParser(SiteParser):
                 for tag in article(['script', 'style', 'aside', 'nav', 'figure']):
                     tag.decompose()
                 
-                for ad in article.find_all(class_=lambda x: x and any(word in x.lower() for word in ['banner', 'promo', 'subscribe'])):
-                    ad.decompose()
+                ads = article.find_all(True)
+                for ad in ads:
+                    classes = ad.get('class', [])
+                    matched = False
+                    if classes:
+                        for cls in classes:
+                            lowered = cls.lower()
+                            if 'banner' in lowered or 'promo' in lowered or 'subscribe' in lowered:
+                                matched = True
+                                break
+                    if matched:
+                        ad.decompose()
                 
                 paragraphs = article.find_all('p')
-                text_parts = [SiteParser.clean_text(p.get_text()) for p in paragraphs 
-                             if len(SiteParser.clean_text(p.get_text())) > 30]
+                text_parts = []
+                for p in paragraphs:
+                    cleaned = SiteParser.clean_text(p.get_text())
+                    if len(cleaned) > 30:
+                        text_parts.append(cleaned)
                 if text_parts:
                     result['text'] = '\n\n'.join(text_parts)
         

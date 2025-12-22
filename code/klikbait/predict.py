@@ -7,9 +7,19 @@ class ClickbaitDetector:
         import os
 
         if os.path.isdir(model_path) and not os.path.exists(os.path.join(model_path, "config.json")):
-            checkpoints = [d for d in os.listdir(model_path) if d.startswith("checkpoint-")]
+            checkpoints = []
+            for d in os.listdir(model_path):
+                if d.startswith("checkpoint-"):
+                    checkpoints.append(d)
             if checkpoints:
-                latest_checkpoint = max(checkpoints, key=lambda x: int(x.split("-")[1]))
+                latest_checkpoint = checkpoints[0]
+                for item in checkpoints:
+                    parts = item.split("-")
+                    latest_parts = latest_checkpoint.split("-")
+                    if len(parts) > 1 and len(latest_parts) > 1:
+                        if parts[1].isdigit() and latest_parts[1].isdigit():
+                            if int(parts[1]) > int(latest_parts[1]):
+                                latest_checkpoint = item
                 model_path = os.path.join(model_path, latest_checkpoint)
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)

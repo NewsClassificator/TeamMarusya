@@ -70,7 +70,10 @@ class RuBERTSentimentAnalyzer:
             padding=True,
             max_length=self.max_length,
         )
-        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+        moved_inputs = {}
+        for k, v in inputs.items():
+            moved_inputs[k] = v.to(self.device)
+        inputs = moved_inputs
         with torch.no_grad():
             outputs = self.model(**inputs)
             scaled_logits = outputs.logits / self.temperature
@@ -105,19 +108,23 @@ class RuBERTSentimentAnalyzer:
             result["chunking_details"] = None
             return result
 
-        chunk_results = [self.predict_sentiment(chunk) for chunk in chunks]
+        chunk_results = []
+        for chunk in chunks:
+            chunk_results.append(self.predict_sentiment(chunk))
         final_result = self.aggregate_chunk_results(chunk_results, text)
         final_result["chunks_used"] = len(chunks)
-        final_result["chunking_details"] = {
-            "chunk_results": [
+        chunk_details = []
+        index_counter = 0
+        for r in chunk_results:
+            chunk_details.append(
                 {
-                    "chunk_index": i,
+                    "chunk_index": index_counter,
                     "label": r["predicted_label"],
                     "confidence": r["confidence"],
                 }
-                for i, r in enumerate(chunk_results)
-            ]
-        }
+            )
+            index_counter += 1
+        final_result["chunking_details"] = {"chunk_results": chunk_details}
         return final_result
 
     def aggregate_chunk_results(
@@ -133,7 +140,10 @@ class RuBERTSentimentAnalyzer:
                 valid_confidences.append(result["confidence"])
 
         if not valid_predictions:
-            avg_confidence = np.mean([r["confidence"] for r in chunk_results])
+            confidence_values = []
+            for r in chunk_results:
+                confidence_values.append(r["confidence"])
+            avg_confidence = np.mean(confidence_values)
             return {
                 "text": original_text,
                 "predicted_label": "UNCERTAIN",
@@ -148,11 +158,12 @@ class RuBERTSentimentAnalyzer:
 
         vote_counts = Counter(valid_predictions)
         most_common_label = vote_counts.most_common(1)[0][0]
-        same_label_confidences = [
-            conf
-            for pred, conf in zip(valid_predictions, valid_confidences)
-            if pred == most_common_label
-        ]
+        same_label_confidences = []
+        for idx in range(len(valid_predictions)):
+            pred = valid_predictions[idx]
+            conf = valid_confidences[idx]
+            if pred == most_common_label:
+                same_label_confidences.append(conf)
         avg_confidence = float(np.mean(same_label_confidences))
 
         agg_probs = {"NEGATIVE": 0.0, "NEUTRAL": 0.0, "POSITIVE": 0.0}
