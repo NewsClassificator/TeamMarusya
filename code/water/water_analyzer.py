@@ -10,11 +10,6 @@ warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
 
 
 class WaterAnalyzer:
-    """
-    Analyzer for text wateriness using a scikit-learn model.
-    Uses readability and POS-based ratios as features and returns probability of water.
-    """
-
     def __init__(self, model_path: str = "ruber_quality_model.pkl"):
         self.model = joblib.load(model_path)
         self.morph = pymorphy3.MorphAnalyzer()
