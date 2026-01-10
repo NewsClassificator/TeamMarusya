@@ -39,7 +39,7 @@ def _ensure_code_on_path() -> None:
 _ensure_code_on_path()
 
 from components.freshness import assess_freshness  # type: ignore  # noqa: E402
-from parser.quotes_test import (  # type: ignore  # noqa: E402
+from parser.quotes_advanced import (  # type: ignore  # noqa: E402
     find_quotes_and_authors,
     replace_quotes_with_placeholder,
 )
