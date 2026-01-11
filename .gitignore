@@ -1,52 +1,88 @@
+# =========================
 # Python
+# =========================
 __pycache__/
+**/__pycache__/
 *.py[cod]
+*.pyc
 *$py.class
 *.so
 .Python
 *.egg-info/
+backend/src/news_analysis_backend.egg-info/
 dist/
 build/
 
-# Virtual Environment
+# =========================
+# Virtual Environments
+# =========================
 .venv/
 venv/
 ENV/
 env/
+.pytest_cache/
+coverage/
+.python-version
 
-# IDE
+# =========================
+# Environment files
+# =========================
+.env
+.env.*
+.env.local
+
+# =========================
+# Node / Next.js
+# =========================
+node_modules/
+frontend/node_modules/
+frontend/.next/
+.next/
+
+# =========================
+# Jupyter / notebooks
+# =========================
+.ipynb_checkpoints/
+*.ipynb
+
+# =========================
+# Models / data (НЕ КОМИТИТЬ)
+# =========================
+*.pkl
+*.joblib
+code/klikbait/my_awesome_model/
+code/sentimen_analiz/rubert_finetuned/
+code/water/ruber_quality_model.pkl
+
+# =========================
+# IDE / editors
+# =========================
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.cursorignore
+.cursorindexingignore
 
+# =========================
 # OS
+# =========================
 .DS_Store
 Thumbs.db
 
-# Temporary files
+# =========================
+# Temporary / misc
+# =========================
 *.htm
 *.html
 _html.htm
 test_*.py
 
-# Environment
-.env
-.env.local
-.python-version
-
-# Lock files
-uv.lock
-
-# Abstra
+# =========================
+# Abstra / Marimo
+# =========================
 .abstra/
-
-# Visual Studio Code
-.cursorignore
-.cursorindexingignore
-
-# Marimo
 marimo/_static/
 marimo/_lsp/
 __marimo__/

@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.csv
+!test_simple.csv
+*.log
+*.json.bak
+negative_news.json
+
+# Training checkpoints
+rubert_finetuned/checkpoint-*/
+checkpoint-*/
+rubert_finetuned/logs/
+
+# LibreOffice lock files
+.~lock.*
+train.json

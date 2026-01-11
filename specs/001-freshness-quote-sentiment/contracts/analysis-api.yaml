@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Article Analysis API
+  version: 1.0.0
+paths:
+  /analysis:
+    post:
+      summary: Analyze article freshness and sentiment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisRequest'
+      responses:
+        '200':
+          description: Analysis completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+        '400':
+          description: Validation error (e.g., missing text/url)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    AnalysisRequest:
+      type: object
+      required: [input_type]
+      properties:
+        input_type:
+          type: string
+          enum: [url, text]
+        url:
+          type: string
+          format: uri
+          description: Required when input_type=url
+        text:
+          type: string
+          description: Required when input_type=text
+        published_date:
+          type: string
+          description: Optional publish date override when input_type=text
+        language:
+          type: string
+          default: ru
+        request_id:
+          type: string
+    ArticleContent:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        published_at:
+          type: string
+          nullable: true
+        content:
+          type: string
+    FreshnessResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [today, yesterday, recent, stale, unknown]
+        age_days:
+          type: number
+          nullable: true
+        reference_date:
+          type: string
+          description: Date used for comparison (YYYY-MM-DD)
+        message:
+          type: string
+        source_date:
+          type: string
+          nullable: true
+    QuoteSentiment:
+      type: object
+      properties:
+        quote_text:
+          type: string
+        sentiment_label:
+          type: string
+        confidence:
+          type: number
+          format: float
+        position:
+          type: integer
+          description: Order of appearance
+        author:
+          type: string
+          nullable: true
+    SentimentSummary:
+      type: object
+      properties:
+        text:
+          type: string
+        sentiment_label:
+          type: string
+        confidence:
+          type: number
+          format: float
+    SentimentResult:
+      type: object
+      properties:
+        main_text:
+          $ref: '#/components/schemas/SentimentSummary'
+        quotes:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuoteSentiment'
+        errors:
+          type: array
+          items:
+            type: string
+    AnalysisMeta:
+      type: object
+      properties:
+        contract_version:
+          type: string
+        analysis_version:
+          type: string
+        analyzed_at:
+          type: string
+          format: date-time
+        seed:
+          type: integer
+    AnalysisResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+          nullable: true
+        article:
+          $ref: '#/components/schemas/ArticleContent'
+        freshness:
+          $ref: '#/components/schemas/FreshnessResult'
+        sentiment:
+          $ref: '#/components/schemas/SentimentResult'
+        meta:
+          $ref: '#/components/schemas/AnalysisMeta'
+        errors:
+          type: array
+          items:
+            type: string
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: string

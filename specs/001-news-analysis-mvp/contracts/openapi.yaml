@@ -1,0 +1,112 @@
+openapi: 3.0.3
+info:
+  title: News Analysis API
+  version: "0.1.0"
+  description: HTTP contract between Next.js thin client and Python backend. Deterministic, CPU-only.
+servers:
+  - url: http://localhost:8000
+paths:
+  /analyze:
+    post:
+      summary: Analyze news content from URL or raw text
+      operationId: analyze
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeRequest'
+      responses:
+        "200":
+          description: Successful analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeResponse'
+        "400":
+          description: Validation or input error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    AnalyzeRequest:
+      type: object
+      required: [input_type]
+      properties:
+        input_type:
+          type: string
+          enum: [url, text]
+        url:
+          type: string
+          format: uri
+          description: Required when input_type=url
+        text:
+          type: string
+          description: Required when input_type=text
+        language:
+          type: string
+          default: ru
+        request_id:
+          type: string
+          description: Optional caller-provided identifier
+    ArticleContent:
+      type: object
+      required: [content]
+      properties:
+        title:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        content:
+          type: string
+    SentimentResult:
+      type: object
+      required: [label, score]
+      properties:
+        label:
+          type: string
+          enum: [positive, neutral, negative]
+        score:
+          type: number
+          format: float
+    AnalyzeResponse:
+      type: object
+      required: [article, sentiment, contract_version, model_version, seed]
+      properties:
+        request_id:
+          type: string
+        contract_version:
+          type: string
+        model_version:
+          type: string
+        seed:
+          type: integer
+        article:
+          $ref: '#/components/schemas/ArticleContent'
+        sentiment:
+          $ref: '#/components/schemas/SentimentResult'
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          nullable: true
